@@ -37,6 +37,14 @@ You may write your API in whatever language you want. It should run on port 8000
 
 The response should look identical to a scraper API response except that it will contain results from all providers while still sorted by agony.
 
+# The Solution
+
+The listings from different sites were merged into one list. `.sorted()` was used to sort by the value of the key `agony`.
+To start it, run `python -m searchrunner.search_aggregate`. This should start a server listening on port 8000.
+The scraperapi server needs to also be running `python -m searchrunner.scraperapi`.
+Navigate to `/flights/search`.
+
+
 # Testing
 
 A basic test script has been included. To use it, make sure both the scraper API and your API are running then simply run `python -m searchrunner.scraperapi_test`.

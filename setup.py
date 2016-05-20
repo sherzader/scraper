@@ -11,7 +11,5 @@ setup(
     install_requires=[
         "requests>=2.5.3",
         "tornado>=4.1",
-        "gevent>=1.0.2",
-        "redis>=2.10.3",
     ],
 )
