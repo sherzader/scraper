@@ -11,10 +11,12 @@ class SearchApiHandler(web.RequestHandler):
     @gen.coroutine
     def get(self, page=None):
         http_client = AsyncHTTPClient()
+        
         if not page:
             page = 1
         else:
             page = int(page)
+
         listings = []
         itemsPerListing = 25
         responses = yield [http_client.fetch(url, self.handle_request) for url in URLS]
