@@ -1,37 +1,47 @@
-from tornado import gen, ioloop, web
+from tornado import gen, ioloop, web, queues
 from tornado.httpclient import AsyncHTTPClient
 import json
+import datetime
+import heapq
+
+
+URLS = ['http://localhost:9000/scrapers/expedia', 'http://localhost:9000/scrapers/orbitz', 'http://localhost:9000/scrapers/priceline', 'http://localhost:9000/scrapers/travelocity', 'http://localhost:9000/scrapers/united']
 
 class SearchApiHandler(web.RequestHandler):
 
     @gen.coroutine
-    def get(self):
+    def get(self, page=None):
         http_client = AsyncHTTPClient()
-        all_listings = []
-        sites = ['expedia', 'orbitz', 'priceline', 'travelocity', 'united']
-
-        for i in range(0, 4):
-            response = yield http_client.fetch("http://localhost:9000/scrapers/" + sites[i], self.handle_request)
+        if not page:
+            page = 1
+        else:
+            page = int(page)
+        listings = []
+        itemsPerListing = 25
+        responses = yield [http_client.fetch(url, self.handle_request) for url in URLS]
+        for response in responses:
             json_resp = json.loads(response.body)
-            all_listings += json_resp['results']
+            listings.append(map(lambda x: (x['agony'], x), json_resp['results'][25*(page-1):25+25*(page-1)]))
 
-        all_listings.sort(key=lambda x: (x['agony'])),
+        merged = map(lambda x: x[1], heapq.merge(*listings))
 
         self.write({
-            "results": all_listings,
+            "results": merged,
         })
 
+        self.finish()
 
     def handle_request(self, response):
         if response.error:
             self.set_status(400)
             self.write({
-                "Error:", response.error
+            "Error:", response.error
             })
 
 
 ROUTES = [
-    (r"/flights/search", SearchApiHandler),
+    (r"/flights/search/(?P<page>\w+)", SearchApiHandler),
+    (r"/flights/search", SearchApiHandler)
 ]
 
 
