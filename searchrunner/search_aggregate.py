@@ -1,9 +1,8 @@
-from tornado import gen, ioloop, web, queues
+from tornado import gen, ioloop, web
 from tornado.httpclient import AsyncHTTPClient
 import json
 import datetime
 import heapq
-
 
 URLS = ['http://localhost:9000/scrapers/expedia', 'http://localhost:9000/scrapers/orbitz', 'http://localhost:9000/scrapers/priceline', 'http://localhost:9000/scrapers/travelocity', 'http://localhost:9000/scrapers/united']
 
@@ -19,6 +18,7 @@ class SearchApiHandler(web.RequestHandler):
         listings = []
         itemsPerListing = 25
         responses = yield [http_client.fetch(url, self.handle_request) for url in URLS]
+
         for response in responses:
             json_resp = json.loads(response.body)
             listings.append(map(lambda x: (x['agony'], x), json_resp['results'][25*(page-1):25+25*(page-1)]))
@@ -28,14 +28,13 @@ class SearchApiHandler(web.RequestHandler):
         self.write({
             "results": merged,
         })
-
         self.finish()
 
     def handle_request(self, response):
         if response.error:
             self.set_status(400)
             self.write({
-            "Error:", response.error
+                "Error:", response.error
             })
 
 
